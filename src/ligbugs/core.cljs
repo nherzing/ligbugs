@@ -3,6 +3,8 @@
             [reagent.core :as reagent :refer [atom]])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
+(enable-console-print!)
+
 (def peak-energy 1000)
 (def phase-length 1000)
 (def delay (/ phase-length peak-energy))
@@ -37,15 +39,19 @@
           (a/<! (timeout delay))))
     (fn [] (reset! alive false))))
 
-(defn start! [n]
-  (let [chans (map (fn [f] (f)) (repeat n a/chan))
-        names (map #(keyword (str "bug" %)) (take n (iterate inc 0)))
-        mults (into {} (map (fn [chan name] [name (a/mult chan)])
-                            chans names))
-        bugs (doall (map (fn [chan name]
-                           (bug name chan (vals (dissoc mults name))))
-                         chans names))]
-    {:mults  mults :stop (fn [] (doseq [b bugs] (b)))}))
+(defn neighbors [[x y]]
+  #{[(inc x) y] [(inc x) (inc y)] [(inc x) (dec y)]
+    [(dec x) y] [(dec x) (inc y)] [(dec x) (dec y)]
+    [x (inc y)] [x (dec y)]})
+
+(defn start-grid! [n]
+  (let [chans (into {} (for [x (range n)
+                             y (range n)]
+                         [[x y] (a/chan)]))
+        mults (into {} (map (fn [[xy ch]] [xy (a/mult ch)]) chans))
+        in-mults (into {} (map (fn [xy] [xy (remove nil? (map mults (neighbors xy)))]) (keys chans)))]
+    (doall (map (fn [xy] (bug xy (chans xy) (in-mults xy))) (keys chans)))
+    {:mults mults}))
 
 
 (defn flash! [style]
@@ -54,7 +60,7 @@
            (when (> n 0)
              (swap! style assoc :opacity (/ n 255))
              (a/<! (timeout 2))
-             (recur (dec n)))))
+             (recur (- n 5)))))
 
 (defn bug-view [m]
   (let [style (atom {:width "100%" :height "100%"
@@ -66,14 +72,18 @@
     (fn []
       [:div {:style {:border "1px solid black"
                      :width "30px"
-                     :height "30px"}}
+                     :height "30px"
+                     :display "inline-block"}}
        [:div {:style @style}]])))
 
 (defn bugs-view [mults]
-  [:div (for [[k m] mults]
-          ^{:key k} [bug-view m])])
+  (let [dim (js/Math.sqrt (count mults))]
+    [:div (for [i (range dim)]
+            ^{:key i} [:div {:class "row"}
+                       (for [j (range dim)]
+                         ^{:key [i j]} [bug-view (mults [i j])])])]))
 
-(defn setup! [n]
-  (let [{:keys [mults stop]} (start! n)]
+(defn setup-grid! [n]
+  (let [{:keys [mults stop]} (start-grid! n)]
     (reagent/render-component (fn [] [bugs-view mults])
                               (.-body js/document))))
