@@ -55,9 +55,10 @@
                              y (range n)]
                          [[x y] (a/chan)]))
         mults (into {} (map (fn [[xy ch]] [xy (a/mult ch)]) chans))
-        in-mults (into {} (map (fn [xy] [xy (remove nil? (map mults (neighbors xy)))]) (keys chans)))]
-    (doall (map (fn [xy] (bug xy (chans xy) (in-mults xy))) (keys chans)))
-    {:mults mults}))
+        in-mults (into {} (map (fn [xy] [xy (remove nil? (map mults (neighbors xy)))]) (keys chans)))
+        stop-fns (doall (map (fn [xy] (bug xy (chans xy) (in-mults xy))) (keys chans)))]
+    {:mults mults
+     :stop (fn [] (doseq [f stop-fns] (f)))}))
 
 
 (defn bug-view [m style]
@@ -71,15 +72,42 @@
       [:div {:class "bug-wrapper" :style style}
        [:div {:class (str @class " bug")}]])))
 
-(defn bugs-view [mults style]
-  (let [dim (js/Math.sqrt (count mults))]
+(defn bugs-view [mults]
+  (let [dim (js/Math.sqrt (count @mults))
+        style {:height (str (dec (* 100 (/ 1 dim))) "%")
+               :width (str (dec (* 100 (/ 1 dim))) "%")}]
     [:div (for [i (range dim)]
             ^{:key i} [:div {:class "row"}
                        (for [j (range dim)]
-                         ^{:key [i j]} [bug-view (mults [i j]) style])])]))
+                         ^{:key [i j]} [bug-view (@mults [i j]) style])])]))
+
+(defn setup-view [setup-fn]
+  (let [value (atom 1)]
+    (fn []
+      [:div
+       [:label "Rows:"]
+       [:input {:type "number" :min 1 :max 1000
+                :value @value
+                :on-change #(reset! value (-> % .-target .-value))}]
+       [:button {:on-click #(setup-fn @value)} "Synchronize!"]])))
+
+(defn view []
+  (let [bugs (atom {})
+        stop-fn (atom nil)
+        reset-fn (fn [n]
+                   (if @stop-fn (@stop-fn))
+                   (let [{:keys [mults stop]} (start-grid! n)]
+                     (reset! bugs mults)
+                     (reset! stop-fn stop)))]
+    [:div
+     [setup-view reset-fn]
+     [bugs-view bugs]]))
 
 (defn setup-grid! [n]
   (let [{:keys [mults stop]} (start-grid! n)]
-    (reagent/render-component (fn [] [bugs-view mults {:height (str (dec (* 100 (/ 1 n))) "%")
-                                                      :width (str (dec (* 100 (/ 1 n))) "%")}])
+    (reagent/render-component (fn [] [bugs-view mults stop])
                               (.-body js/document))))
+
+
+(reagent/render-component (fn [] [view])
+                              (.-body js/document))
