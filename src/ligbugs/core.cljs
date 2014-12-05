@@ -28,9 +28,10 @@
                              (a/tap m c)
                              c))
                     in-mults)]
-    (go (while @alive
-          (a/alts! in-chs)
-          (swap! energy observed-flash)))
+    (if-not (empty? in-mults)
+      (go (while @alive
+            (a/alts! in-chs)
+            (swap! energy observed-flash))))
     (go (while @alive
           (swap! energy inc)
           (when (>= @energy peak-energy)
