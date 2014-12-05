@@ -86,7 +86,7 @@
                          ^{:key [i j]} [bug-view (@mults [i j]) style])])]))
 
 (defn setup-view [setup-fn]
-  (let [value (atom 1)]
+  (let [value (atom 10)]
     (fn []
       [:div
        [:label "Rows:"]
