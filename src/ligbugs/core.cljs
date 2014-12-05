@@ -60,7 +60,7 @@
     {:mults mults}))
 
 
-(defn bug-view [m]
+(defn bug-view [m style]
   (let [class (atom "")
         c (a/chan)]
     (a/tap m c)
@@ -68,17 +68,18 @@
           (reset! class "flash")
           (js/setTimeout #(reset! class "") 500)))
     (fn []
-      [:div {:class "bug-wrapper"}
+      [:div {:class "bug-wrapper" :style style}
        [:div {:class (str @class " bug")}]])))
 
-(defn bugs-view [mults]
+(defn bugs-view [mults style]
   (let [dim (js/Math.sqrt (count mults))]
     [:div (for [i (range dim)]
             ^{:key i} [:div {:class "row"}
                        (for [j (range dim)]
-                         ^{:key [i j]} [bug-view (mults [i j])])])]))
+                         ^{:key [i j]} [bug-view (mults [i j]) style])])]))
 
 (defn setup-grid! [n]
   (let [{:keys [mults stop]} (start-grid! n)]
-    (reagent/render-component (fn [] [bugs-view mults])
+    (reagent/render-component (fn [] [bugs-view mults {:height (str (dec (* 100 (/ 1 n))) "%")
+                                                      :width (str (dec (* 100 (/ 1 n))) "%")}])
                               (.-body js/document))))
