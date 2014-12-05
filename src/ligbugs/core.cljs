@@ -5,7 +5,7 @@
 
 (enable-console-print!)
 
-(def peak-energy 1000)
+(def peak-energy 100)
 (def phase-length 1000)
 (def delay (/ phase-length peak-energy))
 (def refractory-length 5)
@@ -68,13 +68,8 @@
           (reset! class "flash")
           (js/setTimeout #(reset! class "") 500)))
     (fn []
-      [:div {:style {:border "1px solid black"
-                     :width "30px"
-                     :height "30px"
-                     :display "inline-block"}}
-       [:div {:style {:width "100%" :height "100%"
-                      :background "red" :opacity 0}
-              :class @class}]])))
+      [:div {:class "bug-wrapper"}
+       [:div {:class (str @class " bug")}]])))
 
 (defn bugs-view [mults]
   (let [dim (js/Math.sqrt (count mults))]

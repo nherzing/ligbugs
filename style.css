@@ -14,3 +14,17 @@
     -webkit-animation-name: flash;
     -webkit-animation-fill-mode: forwards; /* this prevents the animation from restarting! */
 }
+
+.bug-wrapper {
+    border: 1px solid black;
+    width: 30px;
+    height: 30px;
+    display: inline-block;
+}
+
+.bug {
+    width: 100%;
+    height: 100%;
+    background: red;
+    opacity: 0;
+}
