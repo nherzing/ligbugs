@@ -15,12 +15,13 @@
     (js/setTimeout (fn [] (a/close! c)) ms)
     c))
 
-(let [b 3
-      epsilon 0.1
-      alpha (js/Math.exp (* b epsilon))
-      beta (/ (- (js/Math.exp (* b epsilon)) 1)
-              (- (js/Math.exp b) 1))]
-  (defn observed-flash [energy]
+(def b (atom 3))
+(def epsilon (atom 0.05))
+
+(defn observed-flash [energy]
+  (let [alpha (js/Math.exp (* @b @epsilon))
+        beta (/ (- (js/Math.exp (* @b @epsilon)) 1)
+                (- (js/Math.exp @b) 1))]
     (if (< energy refractory-length)
       energy
       (min (+ (* alpha energy) beta)
@@ -91,6 +92,17 @@
                 :on-change #(reset! value (-> % .-target .-value))}]
        [:button {:on-click #(setup-fn @value)} "Synchronize!"]])))
 
+(defn range-view
+  ([label value min max]
+     (range-view label value min max identity identity))
+  ([label value min max f f-inv]
+     [:div
+      [:label label]
+      [:input {:type "range" :min min :max max
+               :value (f-inv @value)
+               :on-change #(reset! value (-> % .-target .-value f))}]
+      @value]))
+
 (defn view []
   (let [bugs (atom {})
         stop-fn (atom nil)
@@ -101,6 +113,8 @@
                      (reset! stop-fn stop)))]
     [:div
      [setup-view reset-fn]
+     [range-view "b:" b 1 5]
+     [range-view "epsilon:" epsilon 1 30 #(/ % 100) #(* % 100)]
      [bugs-view bugs]]))
 
 (defn setup-grid! [n]
