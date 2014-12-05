@@ -14,4 +14,10 @@
              :compiler {:preamble ["reagent/react.js"]
                         :output-dir "out"
                         :output-to "main.js"
-                        :pretty-print true}}]})
+                        :pretty-print true}}
+            {:source-paths ["src"]
+             :id "prod"
+             :compiler {:preamble ["reagent/react.js"]
+                        :output-to "prod.js"
+                        :pretty-print false
+                        :optimizations :advanced}}]})
