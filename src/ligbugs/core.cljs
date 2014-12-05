@@ -16,7 +16,7 @@
     c))
 
 (def b (atom 3))
-(def epsilon (atom 0.05))
+(def epsilon (atom 0.15))
 
 (defn observed-flash [energy]
   (let [alpha (js/Math.exp (* @b @epsilon))
@@ -37,7 +37,10 @@
     (if-not (empty? in-mults)
       (go (while @alive
             (a/alts! in-chs)
-            (swap! energy observed-flash))))
+            (swap! energy observed-flash)
+            (when (>= @energy peak-energy)
+              (a/put! out-ch msg)
+              (reset! energy 0.0)))))
     (go (while @alive
           (swap! energy inc)
           (when (>= @energy peak-energy)
