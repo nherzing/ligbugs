@@ -15,11 +15,16 @@
     (js/setTimeout (fn [] (a/close! c)) ms)
     c))
 
-(defn observed-flash [energy]
-  (if (< energy refractory-length)
-    energy
-    (+ energy
-       (* (* peak-energy 0.10) (Math/pow (/ energy peak-energy) 2)))))
+(let [b 3
+      epsilon 0.1
+      alpha (js/Math.exp (* b epsilon))
+      beta (/ (- (js/Math.exp (* b epsilon)) 1)
+              (- (js/Math.exp b) 1))]
+  (defn observed-flash [energy]
+    (if (< energy refractory-length)
+      energy
+      (min (+ (* alpha energy) beta)
+           peak-energy))))
 
 (defn bug [msg out-ch in-mults]
   (let [alive (atom true)
@@ -55,27 +60,21 @@
     {:mults mults}))
 
 
-(defn flash! [style]
-  (swap! style assoc :opacity 1)
-  (go-loop [n 255]
-           (when (> n 0)
-             (swap! style assoc :opacity (/ n 255))
-             (a/<! (timeout 2))
-             (recur (- n 5)))))
-
 (defn bug-view [m]
-  (let [style (atom {:width "100%" :height "100%"
-                     :background "red" :opacity 0})
+  (let [class (atom "")
         c (a/chan)]
     (a/tap m c)
     (go (while (<! c)
-          (flash! style)))
+          (reset! class "flash")
+          (js/setTimeout #(reset! class "") 500)))
     (fn []
       [:div {:style {:border "1px solid black"
                      :width "30px"
                      :height "30px"
                      :display "inline-block"}}
-       [:div {:style @style}]])))
+       [:div {:style {:width "100%" :height "100%"
+                      :background "red" :opacity 0}
+              :class @class}]])))
 
 (defn bugs-view [mults]
   (let [dim (js/Math.sqrt (count mults))]
