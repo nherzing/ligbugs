@@ -33,19 +33,19 @@
         in-chs (map (fn [m] (let [c (a/chan)]
                              (a/tap m c)
                              c))
-                    in-mults)]
+                    in-mults)
+        check-flash (fn []
+                      (when (>= @energy peak-energy)
+                        (a/put! out-ch msg)
+                        (reset! energy 0.0)))]
     (if-not (empty? in-mults)
       (go (while @alive
             (a/alts! in-chs)
             (swap! energy observed-flash)
-            (when (>= @energy peak-energy)
-              (a/put! out-ch msg)
-              (reset! energy 0.0)))))
+            (check-flash))))
     (go (while @alive
           (swap! energy inc)
-          (when (>= @energy peak-energy)
-            (a/put! out-ch msg)
-            (reset! energy 0.0))
+          (check-flash)
           (a/<! (timeout delay))))
     (fn [] (reset! alive false))))
 
@@ -74,7 +74,9 @@
           (js/setTimeout #(reset! class "") 500)))
     (fn []
       [:div {:class "bug-wrapper" :style style}
-       [:div {:class (str @class " bug")}]])))
+       [:svg {:viewBox "0 0 100 100"
+              :class (str @class " bug")}
+        [:circle {:cx 30 :cy 30 :r 30 :fill "#66F21F"}]]])))
 
 (defn bugs-view [mults]
   (let [dim (js/Math.sqrt (count @mults))
@@ -116,8 +118,7 @@
                      (reset! stop-fn stop)))]
     [:div
      [setup-view reset-fn]
-     [range-view "b:" b 1 5]
-     [range-view "epsilon:" epsilon 1 30 #(/ % 100) #(* % 100)]
+     [range-view "Rate of synchrony:" epsilon 1 30 #(/ % 100) #(* % 100)]
      [bugs-view bugs]]))
 
 (defn setup-grid! [n]
