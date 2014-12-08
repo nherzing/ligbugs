@@ -74,18 +74,17 @@
           (js/setTimeout #(reset! class "") 500)))
     (fn []
       [:div {:class "bug-wrapper" :style style}
-       [:svg {:viewBox "0 0 100 100"
-              :class (str @class " bug")}
-        [:circle {:cx 30 :cy 30 :r 30 :fill "#66F21F"}]]])))
+       [:div {:class (str @class " bug")}]])))
 
 (defn bugs-view [mults]
   (let [dim (js/Math.sqrt (count @mults))
         style {:height (str (dec (* 100 (/ 1 dim))) "%")
                :width (str (dec (* 100 (/ 1 dim))) "%")}]
-    [:div (for [i (range dim)]
-            ^{:key i} [:div {:class "row"}
-                       (for [j (range dim)]
-                         ^{:key [i j]} [bug-view (@mults [i j]) style])])]))
+    [:div {:class "bugs"}
+     (for [i (range dim)]
+       ^{:key i} [:div {:class "row"}
+                  (for [j (range dim)]
+                    ^{:key [i j]} [bug-view (@mults [i j]) style])])]))
 
 (defn setup-view [setup-fn]
   (let [value (atom 10)]
