@@ -16,7 +16,7 @@
     c))
 
 (def b (atom 3))
-(def epsilon (atom 0.15))
+(def epsilon (atom 0.01))
 
 (defn observed-flash [energy]
   (let [alpha (js/Math.exp (* @b @epsilon))
