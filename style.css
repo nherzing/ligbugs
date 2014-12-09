@@ -25,7 +25,7 @@
 }
 
 .bug {
-    background-image: radial-gradient(16px at 60px 50% , #66F21F 0%, #66F21F 14px, rgba(102, 242, 31, 0.1)  18px, rgba(0, 0, 0, 0) 19px);
+    background-image: radial-gradient(circle, #66F21F 0%, #66F21F 6%, rgba(102, 242, 31, 0.5) 19%, rgba(0, 0, 0, 0) 40%);
     width: 100%;
     height: 100%;
     opacity: 0;
