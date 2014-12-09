@@ -71,36 +71,34 @@
     (a/tap m c)
     (go (while (<! c)
           (reset! class "flash")
-          (js/setTimeout #(reset! class "") 500)))
+          (js/setTimeout #(reset! class "") 800)))
     (fn []
       [:div {:class "bug-wrapper" :style style}
        [:div {:class (str @class " bug")}]])))
 
 (defn bugs-view [mults]
   (let [dim (js/Math.sqrt (count @mults))
-        style {:height (str (dec (* 100 (/ 1 dim))) "%")
-               :width (str (dec (* 100 (/ 1 dim))) "%")}]
+        style {:height (str (* 100 (/ 1 dim)) "%")
+               :width (str (* 100 (/ 1 dim)) "%")}]
     [:div {:class "bugs"}
      (for [i (range dim)]
        ^{:key i} [:div {:class "row"}
                   (for [j (range dim)]
                     ^{:key [i j]} [bug-view (@mults [i j]) style])])]))
 
-(defn setup-view [setup-fn]
-  (let [value (atom 10)]
-    (fn []
-      [:div
-       [:label "Rows:"]
-       [:input {:type "number" :min 1 :max 1000
-                :value @value
-                :on-change #(reset! value (-> % .-target .-value))}]
-       [:button {:on-click #(setup-fn @value)} "Synchronize!"]])))
+(defn setup-view [setup-fn value]
+  [:div {:class "setup"}
+   [:label "Rows:"]
+   [:input {:type "number" :min 1 :max 1000
+            :value @value
+            :on-change #(do (reset! value (-> % .-target .-value))
+                            (setup-fn @value))}]])
 
 (defn range-view
   ([label value min max]
      (range-view label value min max identity identity))
   ([label value min max f f-inv]
-     [:div
+     [:div {:class "range"}
       [:label label]
       [:input {:type "range" :min min :max max
                :value (f-inv @value)
@@ -109,16 +107,20 @@
 
 (defn view []
   (let [bugs (atom {})
+        value (atom 10)
         stop-fn (atom nil)
         reset-fn (fn [n]
                    (if @stop-fn (@stop-fn))
                    (let [{:keys [mults stop]} (start-grid! n)]
                      (reset! bugs mults)
-                     (reset! stop-fn stop)))]
-    [:div
-     [setup-view reset-fn]
-     [range-view "Rate of synchrony:" epsilon 1 30 #(/ % 100) #(* % 100)]
-     [bugs-view bugs]]))
+                     (reset! stop-fn stop)))
+        _ (reset-fn @value)]
+    (fn []
+      [:div
+       [setup-view reset-fn value]
+       [range-view "Rate of synchrony:" epsilon 1 30 #(/ % 100) #(* % 100)]
+       [:button {:on-click #(reset-fn @value)} "reset"]
+       [bugs-view bugs]])))
 
 (defn setup-grid! [n]
   (let [{:keys [mults stop]} (start-grid! n)]

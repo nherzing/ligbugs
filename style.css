@@ -10,13 +10,20 @@
 
 .flash {
     -webkit-animation-delay: 0;
-    -webkit-animation-duration: 0.5s;
+    -webkit-animation-duration: 0.8s;
     -webkit-animation-name: flash;
     -webkit-animation-fill-mode: forwards; /* this prevents the animation from restarting! */
 }
 
-.bugs {
+html {
     background: black;
+}
+
+.setup, .range {
+    display: inline;
+    color: gray;
+    padding: 0 10px;
+
 }
 
 .bug-wrapper {
