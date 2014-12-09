@@ -64,6 +64,20 @@
     {:mults mults
      :stop (fn [] (doseq [f stop-fns] (f)))}))
 
+(defn rgba [r g b a]
+  (str "rgba(" r ", " g ", " b ", " a ")"))
+
+(defn radial-gradient [[ r g b]]
+  (str "radial-gradient(circle," (rgba r g b 1) " 0%, "
+       (rgba r g b 0.5) " 19%, "
+       (rgba 0 0 0 0) " 40%)"))
+
+(def green [102 242 31])
+(def red [242 31 31])
+(def blue [31 31 242])
+(def colors [green red])
+(defn rand-color []
+  (nth colors (rand-int (count colors))))
 
 (defn bug-view [m style]
   (let [class (atom "")
@@ -74,7 +88,8 @@
           (js/setTimeout #(reset! class "") 800)))
     (fn []
       [:div {:class "bug-wrapper" :style style}
-       [:div {:class (str @class " bug")}]])))
+       [:div {:class (str @class " bug")
+              :style {:background-image (radial-gradient green)}}]])))
 
 (defn bugs-view [mults]
   (let [dim (js/Math.sqrt (count @mults))
