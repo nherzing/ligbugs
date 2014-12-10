@@ -142,4 +142,4 @@
 
 
 (reagent/render-component (fn [] [view])
-                              (.-body js/document))
+                              (.getElementById js/document "content"))
