@@ -9,4 +9,3 @@ pom.xml.asc
 /.nrepl-port
 /out
 main.js
-prod.js
