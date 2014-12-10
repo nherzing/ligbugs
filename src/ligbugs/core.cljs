@@ -10,11 +10,6 @@
 (def delay (/ phase-length peak-energy))
 (def refractory-length 5)
 
-(defn timeout [ms]
-  (let [c (a/chan)]
-    (js/setTimeout (fn [] (a/close! c)) ms)
-    c))
-
 (def b (atom 3))
 (def epsilon (atom 0.01))
 
@@ -28,6 +23,8 @@
            peak-energy))))
 
 (defn bug [msg out-ch in-mults]
+  "Takes a msg to flash, a channel to flash on, and a vector of mults to listen
+   to listen for flashes on. Returns an arity-0 function that kills the bug when invoked."
   (let [alive (atom true)
         energy (atom (rand peak-energy))
         in-chs (map (fn [m] (let [c (a/chan)]
@@ -46,7 +43,7 @@
     (go (while @alive
           (swap! energy inc)
           (check-flash)
-          (a/<! (timeout delay))))
+          (a/<! (a/timeout delay))))
     (fn [] (reset! alive false))))
 
 (defn neighbors [[x y]]
@@ -85,7 +82,8 @@
     (a/tap m c)
     (go (while (<! c)
           (reset! class "flash")
-          (js/setTimeout #(reset! class "") 800)))
+          (<! (a/timeout 800))
+          (reset! class "")))
     (fn []
       [:div {:class "bug-wrapper" :style style}
        [:div {:class (str @class " bug")
