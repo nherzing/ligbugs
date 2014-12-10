@@ -101,7 +101,7 @@
 
 (defn setup-view [setup-fn value]
   [:div {:class "setup"}
-   [:label "Rows:"]
+   [:label "Rows"]
    [:input {:type "number" :min 1 :max 1000
             :value @value
             :on-change #(do (reset! value (-> % .-target .-value))
@@ -130,9 +130,10 @@
         _ (reset-fn @value)]
     (fn []
       [:div
-       [setup-view reset-fn value]
-       [range-view "Rate of synchrony:" epsilon 1 30 #(/ % 100) #(* % 100)]
-       [:button {:on-click #(reset-fn @value)} "reset"]
+       [:div {:class "controls"}
+        [setup-view reset-fn value]
+        [range-view "Influence of neighbors" epsilon 1 30 #(/ % 100) #(* % 100)]
+        [:button {:on-click #(reset-fn @value)} "reset"]]
        [bugs-view bugs]])))
 
 (defn setup-grid! [n]

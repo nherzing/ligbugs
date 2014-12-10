@@ -7,23 +7,70 @@
         opacity: 0;
     }
 }
+@-moz-keyframes flash {
+    0% {
+        opacity:1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+
 
 .flash {
     -webkit-animation-delay: 0;
+    -mmoz-animation-delay: 0;
     -webkit-animation-duration: 0.8s;
+    -moz-animation-duration: 0.8s;
     -webkit-animation-name: flash;
+    -moz-animation-name: flash;
     -webkit-animation-fill-mode: forwards; /* this prevents the animation from restarting! */
+    -moz-animation-fill-mode: forwards; /* this prevents the animation from restarting! */
 }
 
 html {
     background: black;
 }
 
+.controls {
+    background: rgb(33, 33, 33);
+    padding: 5px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 23px;
+}
+
 .setup, .range {
     display: inline;
-    color: gray;
+    color: rgb(179, 179, 179);
     padding: 0 10px;
+}
 
+label, button {
+    padding-right: 4px;
+    vertical-align: middle;
+}
+
+input[type=number] {
+    width: 40px;
+    text-align: right;
+}
+
+input {
+    vertical-align: middle;
+    margin-right: 10px;
+}
+
+.bugs {
+    position: absolute;
+    top: 33px;
+    left: 0;
+    bottom: 0px;
+    width: 100%;
 }
 
 .bug-wrapper {
