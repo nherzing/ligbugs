@@ -24,7 +24,7 @@
 
 (defn bug [msg out-ch in-mults]
   "Takes a msg to flash, a channel to flash on, and a vector of mults to listen
-   to listen for flashes on. Returns an arity-0 function that kills the bug when invoked."
+   for flashes on. Returns an arity-0 function that kills the bug when invoked."
   (let [alive (atom true)
         energy (atom (rand peak-energy))
         in-chs (map (fn [m] (let [c (a/chan)]
@@ -34,16 +34,20 @@
         check-flash (fn []
                       (when (>= @energy peak-energy)
                         (a/put! out-ch msg)
-                        (reset! energy 0.0)))]
+                        (reset! energy 0.0)))
+        set-timeout (fn set-timeout []
+                      (js/setTimeout (fn []
+                                       (when @alive
+                                         (swap! energy inc)
+                                         (check-flash)
+                                         (set-timeout)))
+                                     delay))]
     (if-not (empty? in-mults)
       (go (while @alive
             (a/alts! in-chs)
             (swap! energy observed-flash)
             (check-flash))))
-    (go (while @alive
-          (swap! energy inc)
-          (check-flash)
-          (a/<! (a/timeout delay))))
+    (set-timeout)
     (fn [] (reset! alive false))))
 
 (defn neighbors [[x y]]
@@ -82,12 +86,10 @@
     (a/tap m c)
     (go (while (<! c)
           (reset! class "flash")
-          (<! (a/timeout 800))
-          (reset! class "")))
+          (js/setTimeout #(reset! class "") 800)))
     (fn []
       [:div {:class "bug-wrapper" :style style}
-       [:div {:class (str @class " bug")
-              :style {:background-image (radial-gradient green)}}]])))
+       [:div {:class (str @class " bug")}]])))
 
 (defn bugs-view [mults]
   (let [dim (js/Math.sqrt (count @mults))
